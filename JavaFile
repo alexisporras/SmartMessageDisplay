@@ -1,0 +1,298 @@
+package Grafico;
+
+import com.panamahitek.ArduinoException;
+import com.panamahitek.PanamaHitek_Arduino;
+import com.sun.istack.internal.logging.Logger;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import javax.swing.JOptionPane;
+import jssc.SerialPortEvent;
+import jssc.SerialPortEventListener;
+import jssc.SerialPortException;
+import sun.util.logging.PlatformLogger;
+
+public class MenuMensajes extends javax.swing.JFrame {
+
+    PanamaHitek_Arduino ino;
+    SerialPortEventListener listener;
+    ArrayList messages = new ArrayList();
+    String message = "";
+    String aux = "";
+
+    public MenuMensajes() {
+        initComponents();
+        initArduino();
+        taShowMessages.setLineWrap(true);
+        taMessages.setLineWrap(true);
+    }
+
+    public void initArduino() {
+        try {
+            ino.arduinoTX("COM3", 9600);
+            listener = new SerialPortEventListener() {
+                @Override
+                public void serialEvent(SerialPortEvent spe) {
+                    try {
+                        //System.out.println(ino.printMessage());
+                        lblLight.setText(ino.printMessage());
+                    } catch (SerialPortException ex) {
+                        java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (ArduinoException ex) {
+                        java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            };
+        } catch (Exception e) {
+            Logger.getLogger(e.getClass());
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public void showMessages() {
+        for (int i = 0; i < messages.size(); i++) {
+            aux += messages.get(i).toString() + " \n";
+        }
+        taShowMessages.setText(aux);
+        aux = "";
+
+    }
+
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    private void initComponents() {
+
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        taMessages = new javax.swing.JTextArea();
+        btnAdd = new javax.swing.JButton();
+        btnRemove = new javax.swing.JButton();
+        btnClear = new javax.swing.JButton();
+        btnLoad = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        taShowMessages = new javax.swing.JTextArea();
+        jPanel1 = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        lblLight = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        taMessages.setColumns(20);
+        taMessages.setRows(5);
+        taMessages.setPreferredSize(new java.awt.Dimension(165, 95));
+        jScrollPane1.setViewportView(taMessages);
+
+        btnAdd.setText("Agregar");
+        btnAdd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddActionPerformed(evt);
+            }
+        });
+
+        btnRemove.setText("Eliminar");
+        btnRemove.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRemoveActionPerformed(evt);
+            }
+        });
+
+        btnClear.setText("Limpiar");
+        btnClear.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnClearActionPerformed(evt);
+            }
+        });
+
+        btnLoad.setText("Cargar");
+        btnLoad.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLoadActionPerformed(evt);
+            }
+        });
+
+        taShowMessages.setColumns(20);
+        taShowMessages.setRows(5);
+        jScrollPane3.setViewportView(taShowMessages);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGap(56, 56, 56)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane3)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(btnAdd)
+                        .addGap(40, 40, 40)
+                        .addComponent(btnRemove)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(btnClear)
+                        .addGap(40, 40, 40)
+                        .addComponent(btnLoad))
+                    .addComponent(jScrollPane1))
+                .addGap(59, 59, 59))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnClear)
+                    .addComponent(btnRemove)
+                    .addComponent(btnAdd)
+                    .addComponent(btnLoad))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Mensajes", jPanel2);
+
+        jLabel1.setText("La luminosidad es: ");
+
+        lblLight.setText("0");
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblLight, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(343, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addGap(39, 39, 39)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel1)
+                    .addComponent(lblLight))
+                .addContainerGap(279, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Medición", jPanel1);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 360, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
+        pack();
+    }// </editor-fold>                        
+
+    public void clearInterface() {
+        taMessages.setText("");
+        message = "";
+    }
+
+
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {                                       
+        message = taMessages.getText();
+
+        if (message.length() > 4) {
+            if (message.length() < 140) {
+                messages.add(message);
+                clearInterface();
+                showMessages();
+            } else {
+                JOptionPane.showMessageDialog(rootPane, "Mensaje demasiado largo, limite de 140 caracteres.",
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                clearInterface();
+            }
+        } else {
+            JOptionPane.showMessageDialog(rootPane, "Mensaje demasiado corto, mínimo de 5 caracteres.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }                                      
+
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        clearInterface();
+    }                                        
+
+    private void btnRemoveActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        if (messages.size() > 0) {
+            messages.remove(messages.size() - 1);
+            showMessages();
+        } else {
+            JOptionPane.showMessageDialog(rootPane, "No hay mensajes que eliminar.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+    }                                         
+
+    private void btnLoadActionPerformed(java.awt.event.ActionEvent evt) {                                        
+        try {
+            for (int i = 0; i < messages.size(); i++) {
+                ino.sendData(messages.get(i).toString());
+            }
+        } catch (Exception e) {
+            Logger.getLogger(e.getClass());
+            System.out.println(e.getMessage());
+        }
+    }                                       
+
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                MenuMensajes app = new MenuMensajes();
+                app.setVisible(true);
+                app.setLocationRelativeTo(null);
+
+            }
+        });
+    }
+
+    // Variables declaration - do not modify                     
+    private javax.swing.JButton btnAdd;
+    private javax.swing.JButton btnClear;
+    private javax.swing.JButton btnLoad;
+    private javax.swing.JButton btnRemove;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JLabel lblLight;
+    private javax.swing.JTextArea taMessages;
+    private javax.swing.JTextArea taShowMessages;
+    // End of variables declaration                   
+}
