@@ -9,9 +9,8 @@ import javax.swing.JOptionPane;
 import jssc.SerialPortEvent;
 import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
-import sun.util.logging.PlatformLogger;
 
-public class MenuMensajes extends javax.swing.JFrame {
+public final class MenuMensajes extends javax.swing.JFrame {
 
     PanamaHitek_Arduino ino;
     SerialPortEventListener listener;
