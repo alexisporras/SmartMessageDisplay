@@ -1,5 +1,8 @@
 package Grafico;
 
+//Importacion de herramientas
+import Calendar.Calendario;
+import Mensaje.Estructura;
 import com.panamahitek.ArduinoException;
 import com.panamahitek.PanamaHitek_Arduino;
 import com.sun.istack.internal.logging.Logger;
@@ -11,21 +14,29 @@ import jssc.SerialPortEventListener;
 import jssc.SerialPortException;
 
 public final class MenuMensajes extends javax.swing.JFrame {
-
+    //Declarar las variables a utilizar
     PanamaHitek_Arduino ino;
     SerialPortEventListener listener;
-    ArrayList messages = new ArrayList();
+    ArrayList<Estructura> messages = new ArrayList();
     String message = "";
     String aux = "";
+    String date = "";
+    String hour = "";
+    Calendario calendar;
 
     public MenuMensajes() {
+        //Iniciar conexion de arduino, iniciar calendario para obtener fechas automaticas
         initComponents();
         initArduino();
+        initCalendar();
+
+        //Cortar texto para que se visualice mejor el texto escrito en la pantalla
         taShowMessages.setLineWrap(true);
         taMessages.setLineWrap(true);
     }
 
     public void initArduino() {
+        //Conexion de arduino
         try {
             ino.arduinoTX("COM3", 9600);
             listener = new SerialPortEventListener() {
@@ -34,26 +45,33 @@ public final class MenuMensajes extends javax.swing.JFrame {
                     try {
                         //System.out.println(ino.printMessage());
                         lblLight.setText(ino.printMessage());
-                    } catch (SerialPortException ex) {
-                        java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(Level.SEVERE, null, ex);
                     } catch (ArduinoException ex) {
+                        java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (SerialPortException ex) {
                         java.util.logging.Logger.getLogger(MenuMensajes.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             };
         } catch (Exception e) {
             Logger.getLogger(e.getClass());
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
         }
     }
 
-    public void showMessages() {
-        for (int i = 0; i < messages.size(); i++) {
-            aux += messages.get(i).toString() + " \n";
-        }
-        taShowMessages.setText(aux);
-        aux = "";
+    public void initCalendar() {
+        calendar = new Calendario();
+    }
 
+    public void showMessages() {
+        //Muestra los mensajes existentes en el cuadro de texto
+        if (messages.size() > 0) {
+            for (int i = 0; i < messages.size(); i++) {
+                aux += messages.get(i).getMensaje() + " - " + messages.get(i).getFecha()
+                        + " - " + messages.get(i).getHora() + "\n \n";
+            }
+            taShowMessages.setText(aux);
+            aux = "";
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -118,7 +136,7 @@ public final class MenuMensajes extends javax.swing.JFrame {
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(56, 56, 56)
+                .addGap(30, 30, 30)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jScrollPane3)
                     .addGroup(jPanel2Layout.createSequentialGroup()
@@ -130,7 +148,7 @@ public final class MenuMensajes extends javax.swing.JFrame {
                         .addGap(40, 40, 40)
                         .addComponent(btnLoad))
                     .addComponent(jScrollPane1))
-                .addGap(59, 59, 59))
+                .addGap(30, 30, 30))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -144,7 +162,7 @@ public final class MenuMensajes extends javax.swing.JFrame {
                     .addComponent(btnLoad))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 122, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 20, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Mensajes", jPanel2);
@@ -162,7 +180,7 @@ public final class MenuMensajes extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(lblLight, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(343, Short.MAX_VALUE))
+                .addContainerGap(285, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -192,18 +210,46 @@ public final class MenuMensajes extends javax.swing.JFrame {
         pack();
     }// </editor-fold>                        
 
-    public void clearInterface() {
-        taMessages.setText("");
-        message = "";
-    }
+    private void btnLoadActionPerformed(java.awt.event.ActionEvent evt) {                                        
+        /*Recarga la informacion mandada al arduino*/
+        try {
+            for (int i = 0; i < messages.size(); i++) {
+                ino.sendData(messages.get(i).toString());
+            }
+        } catch (Exception e) {
+            Logger.getLogger(e.getClass());
+            System.out.println(e.getMessage());
+        }
+    }                                       
 
+    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        clearInterface();
+    }                                        
+
+    private void btnRemoveActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        /*Funcionando como una cola, elimina el ultimo mensaje en haber entrado al arreglo*/
+        if (messages.size() > 0) {
+            messages.remove(0);
+            showMessages();
+        } else {
+            JOptionPane.showMessageDialog(rootPane, "No hay mensajes que eliminar.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }                                         
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {                                       
+        //Igual a una variable el texto obtenido de la entrada
         message = taMessages.getText();
 
+        /*Si el texto es muy corto no permite agregarlo evitando errores humano, 
+        de igual manera permite solo 140 caracteres como maximo
+         */
         if (message.length() > 4) {
             if (message.length() < 140) {
-                messages.add(message);
+                date = calendar.getDate();
+                hour = calendar.getHour();
+                Estructura item = new Estructura(message, date, hour);
+                messages.add(item);
                 clearInterface();
                 showMessages();
             } else {
@@ -215,34 +261,13 @@ public final class MenuMensajes extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(rootPane, "Mensaje demasiado corto, mínimo de 5 caracteres.",
                     "Error", JOptionPane.ERROR_MESSAGE);
         }
-
     }                                      
 
-    private void btnClearActionPerformed(java.awt.event.ActionEvent evt) {                                         
-        clearInterface();
-    }                                        
-
-    private void btnRemoveActionPerformed(java.awt.event.ActionEvent evt) {                                          
-        if (messages.size() > 0) {
-            messages.remove(messages.size() - 1);
-            showMessages();
-        } else {
-            JOptionPane.showMessageDialog(rootPane, "No hay mensajes que eliminar.",
-                    "Error", JOptionPane.ERROR_MESSAGE);
-        }
-
-    }                                         
-
-    private void btnLoadActionPerformed(java.awt.event.ActionEvent evt) {                                        
-        try {
-            for (int i = 0; i < messages.size(); i++) {
-                ino.sendData(messages.get(i).toString());
-            }
-        } catch (Exception e) {
-            Logger.getLogger(e.getClass());
-            System.out.println(e.getMessage());
-        }
-    }                                       
+    public void clearInterface() {
+        //Limpiar mensaje de pantalla
+        taMessages.setText("");
+        message = "";
+    }
 
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
