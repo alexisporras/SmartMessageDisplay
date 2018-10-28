@@ -1,13 +1,201 @@
+#include <LiquidCrystal.h>  // Libreria LCD
+#include <Keypad.h>         // Libreria teclado
+#define RS 3                // Pines para el LCD
+#define E 5
+#define D4 6
+#define D5 9
+#define D6 10
+#define D7 11
+
+const int LDRPin = A0;      //Pin del LDR
+
+/* ------------------------- Fotoresistencia ------------------------- */
+//Resistencias para calculos de la fotoresistencia
+const long A = 1000;        //En oscuridad
+const int B = 15;           //A la luz
+const int Rc = 10;          //De calibracion
+
+int valorLDR;               //Valor de LDR
+int luminosidad;            //Valor de la luminosidad
+String luminosidadTexto = "Luminosidad: ";    //String para mostrar en display
+String mensajeAnterior = "Sin mensaje anterior";    //String para mostrar en display
+String mensajeSiguiente = "Sin mensaje siguiente";    //String para mostrar en display
+/* ------------------------- Mensajes ------------------------- */
+//String mensajes [] = {"Mensaje 1", "Mensaje 2", "Mensaje 3", "Mensaje 4"}; //Definimos un arreglo de mensajes a mostrar
+int cont = 0;         // Contador para mostrar mensajes
+int tamano = 0;          // Tamaño de arreglo
+
+String mensajes [10]; //Arreglo para guardar los mensajes de la interfaz
+String mensaje = "";  //Variable para guardar el mensaje de la interfaz
+int guardar = 0;      //Contador para guardar los mensajes
+int ver = 0;          //Contador para ver los mensajes
+bool lectura = false; //Status de lectura
+int count = 0;
+String eliminar = "";
+int posicion_eliminar;
+
+/* ------------------------- Teclado ------------------------- */
+const byte rows = 4;        //Numero de filas
+const byte columns = 4;     //Numero de columnas
+
+const byte pinRows[rows] = { 12, 8, 7, 4 }; //Pines que corresponden en el teclado
+const byte pinColumns[columns] = { A4, A3, A2, A1 }; // Pines que corresponden en el teclado
+char teclas[rows][columns] = { //Asignacion de teclas en una matriz
+  { '1', '2', '3', 'A' },
+  { '4', '5', '6', 'B' },
+  { '7', '8', '9', 'C' },
+  { '*', '0', '#', 'D' }
+};
+
+LiquidCrystal lcd(RS, E, D4, D5, D6, D7); //Se inicia el LCD con la asignacion de sus pines
+Keypad keypad = Keypad(makeKeymap(teclas), pinRows, pinColumns, rows, columns); //Se inicia el teclado con su tamaño y pines establecidos
+
+
 void setup() {
-  pinMode(13, OUTPUT);
   Serial.begin(9600);
+  lcd.begin(16, 2);           //Se inicia el LCD, los parametros hacen referencia a la capacidad del display, es de 16 caracteres en 2 lineas
+  lcd.clear();                //Limpia la pantalla
+  lcd.setCursor(0, 1);        //Posiciona el apuntador para escrituta
+  lcd.write("Sin mensajes");  //Escribe el mensaje por default
+  mensaje.reserve(200);       //Asignar un búfer en la memoria para manipular el string recibido
 }
 
 void loop() {
-  //En caso de que haya informacion en el serial, guarda datos en variable y los imprime
-  if (Serial.available() > 0) {
-    String input = Serial.read();
-    digitalWrite(13, HIGH);
+  char key = keypad.getKey();                      //Pedimos la tecla presionada y asignamos el valor
+  tamano = sizeof(mensajes) / sizeof(mensajes[0]); //Obtenemos el tamaño del arreglo
+
+  if (Serial.available()) {
+    lectura = false;
+    while (Serial.available()) {
+      delay(50);
+      char c = (char)Serial.read(); //Se guarda caracter por caracter hasta formar un string
+      mensaje += c;
+      if (c == '\n') {              //Cambia el valor a verdadero si se le correctamente
+        lectura = true;
+      }
+    }
+    mensajes[guardar] = mensaje;
+    mensaje = "";
+    guardar ++;
   }
 
+  if (key) {
+
+    if (key == 'A' ) { // Si presiona la A, lo regresará a la bienvenida
+      lcd.clear();
+      lcd.setCursor(0, 1);
+      lcd.write("No hay mensajes");
+    } else if (key == 'B') { // La letra B tiene la accion de leer la luminosidad
+
+      valorLDR = analogRead(LDRPin);   //Se guarda el valor de la fotoresistencia
+      luminosidad = ((long)valorLDR * A * 10) / ((long)B * Rc * (1024 - valorLDR)); //Se calcula la luminosidad en base a la formula
+      luminosidadTexto.concat(luminosidad);
+
+      lcd.clear();
+      lcd.setCursor(0, 1); //Posicion del puntero para escribir en el display
+      lcd.print(luminosidadTexto);
+
+      for (int i = 0; i < (luminosidadTexto.length()); i++) {
+        lcd.scrollDisplayLeft();
+        delay(300);
+      }
+      lcd.print("");
+      for (int i = 0; i < (luminosidadTexto.length() + 16); i++) {
+        lcd.scrollDisplayRight();
+        delay(1);
+      }
+      for (int i = 0; i < 16; i++) {
+        lcd.scrollDisplayLeft();
+        delay(1);
+      }
+      delay(300);
+      Serial.print(luminosidadTexto);
+      Serial.print("\n");
+      luminosidadTexto = " Luminosidad: ";
+
+    }
+
+    if (key == '1') {                     // Si presiona el 4, lo regresará un mensaje anterior
+      if (tamano > 0) {                         //Verificamos que el arreglo tenga al menos un mensaje
+        if (cont <= 0) {                        //Checamos que haya algun mensaje anterior
+          cont = -1;
+          lcd.clear();;
+          lcd.setCursor(0, 1);
+          lcd.print(mensajeAnterior);
+
+          for (int i = 0; i < (mensajeAnterior.length()); i++) {
+            lcd.scrollDisplayLeft();
+            delay(300);
+          }
+          lcd.print("");
+          for (int i = 0; i < (mensajeAnterior.length()); i++) {
+            lcd.scrollDisplayRight();
+            delay(1);
+          }
+
+
+        } else {
+          cont -= 1;                          // Mostramos un mensaje anterior
+          lcd.clear();
+          lcd.setCursor(0, 0);
+          lcd.print(mensajes[cont]);
+          for (int i = 0; i < (mensajes[cont].length()); i++) {
+            lcd.scrollDisplayLeft();
+            delay(300);
+          }
+          lcd.print("");
+          for (int i = 0; i < (mensajes[cont].length() + 16); i++) {
+            lcd.scrollDisplayRight();
+            delay(1);
+          }
+          delay(100);
+        }
+      } else {
+        lcd.clear();
+        lcd.setCursor(1, 0);
+        lcd.write("No hay mensajes");
+        Serial.println("No hay mensajes");
+      }
+    } else if (key == '3') {                  // Si presiona el 3, lo regresará un mensaje posterior
+      if (tamano > guardar) {                 //Verificamos que el arreglo tenga al menos un mensaje
+        if (cont >= guardar - 1) {            //Checamos que haya algun mensaje posterior
+          cont = guardar;
+          lcd.clear();
+          lcd.setCursor(1, 1);
+          lcd.print(mensajeSiguiente);
+          for (int i = 0; i < (mensajeSiguiente.length()); i++) {
+            lcd.scrollDisplayLeft();
+            delay(300);
+          }
+          lcd.print("");
+          for (int i = 0; i < (mensajeSiguiente.length() + 16); i++) {
+            lcd.scrollDisplayRight();
+            delay(1);
+          }
+          delay(100);
+        } else {
+          cont += 1;                      // Mostramos un mensaje siguiente
+          lcd.clear();
+          lcd.setCursor(1, 1);
+          lcd.print(mensajeSiguiente);
+          for (int i = 0; i < (mensajes[cont].length()); i++) {
+            lcd.scrollDisplayLeft();
+            delay(300);
+          }
+          lcd.print("");
+          for (int i = 0; i < (mensajes[cont].length() + 16); i++) {
+            lcd.scrollDisplayRight();
+            delay(1);
+          }
+          delay(100);
+         
+        }
+      } else {
+        lcd.clear();
+        lcd.setCursor(1, 0);
+        lcd.write("No hay mensajes");
+      }
+    }
+  }
+  delay(100);
 }
