@@ -1,5 +1,10 @@
 # SmartMessageDisplay
 
+ # Descripción: 
+ Sistema inteligente para la deteccion de variantes en el entorno, medicion de distintos tipos, luminosidad, temperatura y humedad, en    aplicacion real puede ser muy beneficiosa para el usuario final. Previene incendios, desperdicio de agua y ayuda a ahorrar luz.
+ Ademas implementa un display para mostrar mensajes con una interfaz grafica en la cual se pueden agregar mensajes por el usurario y una interfaz fisica para mostrarlo en la pantalla en el momento que sea, a su vez, poder eliminar mensajes y en el momento que se desee mostrar las mediciones de los distintos sensores implementados.
+
+
 # Libreria en arduino
 Instalar una librería de arduino mediante el gestor de librerías.
 El gestor de librerías es una característica recién implementada en versiones recientes del IDE Arduino. Permite instalar y actualizar las librerías de forma totalmente transparente para el usuario. Para instalar una librería, solamente debemos seleccionarla de una lista y pulsar el botón “instalar”.
