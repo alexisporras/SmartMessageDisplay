@@ -1,4 +1,5 @@
 # SmartMessageDisplay
+Alexis Porras
 
  # Descripción: 
  Sistema inteligente para la deteccion de variantes en el entorno, medicion de distintos tipos, luminosidad, temperatura y humedad, en    aplicacion real puede ser muy beneficiosa para el usuario final. Previene incendios, desperdicio de agua y ayuda a ahorrar luz.
