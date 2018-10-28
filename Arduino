@@ -1,13 +1,26 @@
 #include <LiquidCrystal.h>  // Libreria LCD
 #include <Keypad.h>         // Libreria teclado
+#include <DHT.h>           // Libreria DHT
+
 #define RS 3                // Pines para el LCD
 #define E 5
 #define D4 6
 #define D5 9
 #define D6 10
 #define D7 11
+#define DHTTYPE DHT22     //Sensor de temperatura y humedad
+
+/* ------------------------- Sensores ------------------------- */
 
 const int LDRPin = A0;      //Pin del LDR
+const int DHTPin = 2;       //Pin de entrada para el sensor de temperatura y humedad
+
+float temperatura;               //Definimos la variable de la temperatura
+float humedad;                  //Definimos la variable de la temperatura
+String temperaturaTexto = "Temperatura: ";    //String para mostrar en display
+String humedadTexto = "Humedad: ";    //String para mostrar en display
+
+
 
 /* ------------------------- Fotoresistencia ------------------------- */
 //Resistencias para calculos de la fotoresistencia
@@ -18,19 +31,17 @@ const int Rc = 10;          //De calibracion
 int valorLDR;               //Valor de LDR
 int luminosidad;            //Valor de la luminosidad
 String luminosidadTexto = "Luminosidad: ";    //String para mostrar en display
-String mensajeAnterior = "Sin mensaje anterior";    //String para mostrar en display
-String mensajeSiguiente = "Sin mensaje siguiente";    //String para mostrar en display
 /* ------------------------- Mensajes ------------------------- */
 //String mensajes [] = {"Mensaje 1", "Mensaje 2", "Mensaje 3", "Mensaje 4"}; //Definimos un arreglo de mensajes a mostrar
 int cont = 0;         // Contador para mostrar mensajes
-int tamano = 0;          // Tamaño de arreglo
+int tamano = 10;          // Tamaño de arreglo
 
-String mensajes [10]; //Arreglo para guardar los mensajes de la interfaz
-String mensaje = "";  //Variable para guardar el mensaje de la interfaz
-int guardar = 0;      //Contador para guardar los mensajes
+String mensajes [10]; //Arreglo para posicion los mensajes de la interfaz
+String mensaje = "";  //Variable para posicion el mensaje de la interfaz
+int posicion = 0;      //Contador para posicion los mensajes
 bool lectura = false; //Status de lectura
-String eliminar = "";
-int posicion_eliminar;
+
+int aux = 0;
 
 /* ------------------------- Teclado ------------------------- */
 const byte rows = 4;        //Numero de filas
@@ -45,6 +56,7 @@ char teclas[rows][columns] = { //Asignacion de teclas en una matriz
   { '*', '0', '#', 'D' }
 };
 
+DHT dht(DHTPin, DHTTYPE);   //Inicializamos el sensor de temperatura definiendo el tipo de sensor y el pin de entrada
 LiquidCrystal lcd(RS, E, D4, D5, D6, D7); //Se inicia el LCD con la asignacion de sus pines
 Keypad keypad = Keypad(makeKeymap(teclas), pinRows, pinColumns, rows, columns); //Se inicia el teclado con su tamaño y pines establecidos
 
@@ -54,13 +66,12 @@ void setup() {
   lcd.begin(16, 2);           //Se inicia el LCD, los parametros hacen referencia a la capacidad del display, es de 16 caracteres en 2 lineas
   lcd.clear();                //Limpia la pantalla
   lcd.setCursor(0, 1);        //Posiciona el apuntador para escrituta
-  lcd.write("Sin mensajes");  //Escribe el mensaje por default
-  mensaje.reserve(200);       //Asignar un búfer en la memoria para manipular el string recibido
+  lcd.write("Inicio");  //Escribe el mensaje por default
+  mensaje.reserve(150);       //Asignar un búfer en la memoria para manipular el string recibido
 }
 
 void loop() {
   char key = keypad.getKey();                      //Pedimos la tecla presionada y asignamos el valor
-  tamano = sizeof(mensajes) / sizeof(mensajes[0]); //Obtenemos el tamaño del arreglo
 
   if (Serial.available()) {
     lectura = false;
@@ -72,14 +83,14 @@ void loop() {
         lectura = true;
       }
     }
-    mensajes[guardar] = mensaje;
+    mensajes[posicion] = mensaje;
     mensaje = "";
-    guardar ++;
+    posicion ++;
   }
 
   if (key) {
 
-    if (key == 'A' ) { // Si presiona la A, lo regresará a la bienvenida
+    if (key == 'A' ) {       //La letra A manda a inicio
       lcd.clear();
       lcd.setCursor(0, 1);
       lcd.write("Inicio");
@@ -88,6 +99,7 @@ void loop() {
 
       valorLDR = analogRead(LDRPin);   //Se guarda el valor de la fotoresistencia
       luminosidad = ((long)valorLDR * A * 10) / ((long)B * Rc * (1024 - valorLDR)); //Se calcula la luminosidad en base a la formula
+      luminosidadTexto = "Luminosidad: ";
       luminosidadTexto.concat(luminosidad);
 
       lcd.clear();
@@ -107,33 +119,93 @@ void loop() {
         lcd.scrollDisplayLeft();
         delay(1);
       }
-      delay(300);
-      Serial.print(luminosidadTexto);
-      Serial.print("\n");
-      luminosidadTexto = " Luminosidad: ";
+      delay(100);
+      luminosidadTexto = "";
 
-    }
 
-    if (key == '1') {                     // Si presiona el 4, lo regresará un mensaje anterior
+    } else if (key == 'C') {
+      humedad = dht.readHumidity();  //Leemos la humedad del sensor
+      humedadTexto = "Humedad: ";
+      humedadTexto.concat(humedad);
+
+      lcd.clear();
+      lcd.setCursor(0, 1); //Posicion del puntero para escribir en el display
+      lcd.print(humedadTexto);
+
+      for (int i = 0; i < (humedadTexto.length()); i++) {
+        lcd.scrollDisplayLeft();
+        delay(300);
+      }
+      lcd.print("");
+      for (int i = 0; i < (humedadTexto.length() + 16); i++) {
+        lcd.scrollDisplayRight();
+        delay(1);
+      }
+      for (int i = 0; i < 16; i++) {
+        lcd.scrollDisplayLeft();
+        delay(1);
+      }
+      delay(100);
+      humedadTexto = "";
+      
+    } else if (key == 'D') {
+      temperatura = dht.readTemperature();  //Leemos la humedad del sensor
+      temperaturaTexto.concat(temperatura);
+
+      lcd.clear();
+      lcd.setCursor(0, 1); //Posicion del puntero para escribir en el display
+      lcd.print(temperaturaTexto);
+
+      for (int i = 0; i < (temperaturaTexto.length()); i++) {
+        lcd.scrollDisplayLeft();
+        delay(400);
+      }
+      lcd.print("");
+      for (int i = 0; i < (temperaturaTexto.length() + 16); i++) {
+        lcd.scrollDisplayRight();
+        delay(1);
+      }
+      for (int i = 0; i < 16; i++) {
+        lcd.scrollDisplayLeft();
+        delay(1);
+      }
+      delay(100);
+      temperaturaTexto = "Temperatura: ";
+      
+    }else if (key == '3') {
+      if (posicion > 0 ) {
+        if (mensajes[0] != "") {
+          mensajes[0] == "";
+        }
+      } else {
+        lcd.clear();;
+        lcd.setCursor(0, 1);
+        lcd.print("Sin mensajes para eliminar");
+
+        for (int i = 0; i < (25) ; i++) {
+          lcd.scrollDisplayLeft();
+          delay(400);
+        }
+        lcd.print("");
+        for (int i = 0; i < (25); i++) {
+          lcd.scrollDisplayRight();
+          delay(1);
+        }
+        Serial.print("Mensaje eliminado");
+      }
+        delay(100);
+
+    } else if (key == '1') {                     // Si presiona el 4, lo regresará un mensaje anterior
+      if (tamano > 0) {                         //Verificamos que el arreglo tenga al menos un mensaje
         if (cont <= 0) {                        //Checamos que haya algun mensaje anterior
           cont = -1;
-          lcd.clear();;
+          lcd.clear();
           lcd.setCursor(0, 1);
-          lcd.print(mensajeAnterior);
-
-          for (int i = 0; i < (mensajeAnterior.length()); i++) {
-            lcd.scrollDisplayLeft();
-            delay(300);
-          }
-          lcd.print("");
-          for (int i = 0; i < (mensajeAnterior.length()); i++) {
-            lcd.scrollDisplayRight();
-            delay(1);
-          }
+          lcd.write("Sin mensaje ant.");
         } else {
           cont -= 1;                          // Mostramos un mensaje anterior
           lcd.clear();
-          lcd.setCursor(0, 0);
+          lcd.setCursor(0, 1);
           lcd.print(mensajes[cont]);
           for (int i = 0; i < (mensajes[cont].length()); i++) {
             lcd.scrollDisplayLeft();
@@ -144,41 +216,41 @@ void loop() {
             lcd.scrollDisplayRight();
             delay(1);
           }
-          delay(100);
-        }
-    } else if (key == '3') {                  // Si presiona el 3, lo regresará un mensaje posterior
-      if (tamano > guardar) {                 //Verificamos que el arreglo tenga al menos un mensaje
-        if (cont >= guardar - 1) {            //Checamos que haya algun mensaje posterior
-          cont = guardar;
-          lcd.clear();
-          lcd.setCursor(0, 1);
-          lcd.print(mensajeSiguiente);
-          for (int i = 0; i < (mensajeSiguiente.length()); i++) {
+          for (int i = 0; i < 16; i++) {
             lcd.scrollDisplayLeft();
-            delay(300);
-          }
-          lcd.print("");
-          for (int i = 0; i < (mensajeSiguiente.length()); i++) {
-            lcd.scrollDisplayRight();
             delay(1);
           }
           delay(100);
-        } else {
-          cont += 1;                      // Mostramos un mensaje siguiente
+        }
+      } else {
+        lcd.clear();
+      }
+    } else if (key == '2') {                  // Si presiona el 6, lo regresará un mensaje posterior
+      if (tamano > posicion) {                      //Verificamos que el arreglo tenga al menos un mensaje
+        if (cont >= posicion - 1) {            //Checamos que haya algun mensaje posterior
+          cont = posicion;
           lcd.clear();
-          lcd.setCursor(1, 1);
-          lcd.print(mensajeSiguiente);
+          lcd.setCursor(0, 1);
+          lcd.write("Sin mensaje sig.");
+        } else {
+          cont += 1;                      // Mostramos un mensaje anterior
+          lcd.clear();
+          lcd.setCursor(0, 1);
+          lcd.print(mensajes[cont]);
           for (int i = 0; i < (mensajes[cont].length()); i++) {
             lcd.scrollDisplayLeft();
-            delay(300);
+            delay(400);
           }
           lcd.print("");
           for (int i = 0; i < (mensajes[cont].length() + 16); i++) {
             lcd.scrollDisplayRight();
             delay(1);
           }
+          for (int i = 0; i < 16; i++) {
+            lcd.scrollDisplayLeft();
+            delay(1);
+          }
           delay(100);
-         
         }
       } else {
         lcd.clear();
@@ -187,3 +259,4 @@ void loop() {
   }
   delay(100);
 }
+
