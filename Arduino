@@ -28,9 +28,7 @@ int tamano = 0;          // Tamaño de arreglo
 String mensajes [10]; //Arreglo para guardar los mensajes de la interfaz
 String mensaje = "";  //Variable para guardar el mensaje de la interfaz
 int guardar = 0;      //Contador para guardar los mensajes
-int ver = 0;          //Contador para ver los mensajes
 bool lectura = false; //Status de lectura
-int count = 0;
 String eliminar = "";
 int posicion_eliminar;
 
@@ -84,7 +82,8 @@ void loop() {
     if (key == 'A' ) { // Si presiona la A, lo regresará a la bienvenida
       lcd.clear();
       lcd.setCursor(0, 1);
-      lcd.write("No hay mensajes");
+      lcd.write("Inicio");
+      cont = 0;
     } else if (key == 'B') { // La letra B tiene la accion de leer la luminosidad
 
       valorLDR = analogRead(LDRPin);   //Se guarda el valor de la fotoresistencia
@@ -116,7 +115,6 @@ void loop() {
     }
 
     if (key == '1') {                     // Si presiona el 4, lo regresará un mensaje anterior
-      if (tamano > 0) {                         //Verificamos que el arreglo tenga al menos un mensaje
         if (cont <= 0) {                        //Checamos que haya algun mensaje anterior
           cont = -1;
           lcd.clear();;
@@ -132,8 +130,6 @@ void loop() {
             lcd.scrollDisplayRight();
             delay(1);
           }
-
-
         } else {
           cont -= 1;                          // Mostramos un mensaje anterior
           lcd.clear();
@@ -150,25 +146,19 @@ void loop() {
           }
           delay(100);
         }
-      } else {
-        lcd.clear();
-        lcd.setCursor(1, 0);
-        lcd.write("No hay mensajes");
-        Serial.println("No hay mensajes");
-      }
     } else if (key == '3') {                  // Si presiona el 3, lo regresará un mensaje posterior
       if (tamano > guardar) {                 //Verificamos que el arreglo tenga al menos un mensaje
         if (cont >= guardar - 1) {            //Checamos que haya algun mensaje posterior
           cont = guardar;
           lcd.clear();
-          lcd.setCursor(1, 1);
+          lcd.setCursor(0, 1);
           lcd.print(mensajeSiguiente);
           for (int i = 0; i < (mensajeSiguiente.length()); i++) {
             lcd.scrollDisplayLeft();
             delay(300);
           }
           lcd.print("");
-          for (int i = 0; i < (mensajeSiguiente.length() + 16); i++) {
+          for (int i = 0; i < (mensajeSiguiente.length()); i++) {
             lcd.scrollDisplayRight();
             delay(1);
           }
@@ -192,8 +182,6 @@ void loop() {
         }
       } else {
         lcd.clear();
-        lcd.setCursor(1, 0);
-        lcd.write("No hay mensajes");
       }
     }
   }
