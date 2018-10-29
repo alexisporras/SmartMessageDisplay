@@ -10,6 +10,8 @@
 #define D7 11
 #define DHTTYPE DHT22       //Sensor de temperatura y humedad
 
+#define pinBocina = 13;      //Bocina
+
 /* ------------------------- Sensores ------------------------- */
 
 const int LDRPin = A0;                        //Pin del LDR
@@ -59,6 +61,7 @@ DHT dht(DHTPin, DHTTYPE);                                                       
 LiquidCrystal lcd(RS, E, D4, D5, D6, D7);                                       //Se inicia el LCD con la asignacion de sus pines
 Keypad keypad = Keypad(makeKeymap(teclas), pinRows, pinColumns, rows, columns); //Se inicia el teclado con su tamaño y pines establecidos
 
+pinMode(pinBocina, OUTPUT);       //Declarar pin de bocina
 
 void setup() {
   Serial.begin(9600);
@@ -101,6 +104,12 @@ void loop() {
       luminosidadTexto = "Luminosidad: ";
       luminosidadTexto.concat(luminosidad);
 
+      if(luminosiad > 200){                 //Si sobre un rango sonara la bocina
+          digitalWrite(pinBocina, HIGH);
+          delay(300);
+          digitalWrite(pinBocina, LOW);
+      }
+
       lcd.clear();
       lcd.setCursor(0, 1); //Posicion del puntero para escribir en el display
       lcd.print(luminosidadTexto);
@@ -127,6 +136,12 @@ void loop() {
       humedadTexto = "Humedad: ";     
       humedadTexto.concat(humedad);   //Se concatena el texto con la variable
 
+      if(humedad > 200){                 //Si sobre un rango sonara la bocina
+          digitalWrite(pinBocina, HIGH);
+          delay(300);
+          digitalWrite(pinBocina, LOW);
+      }
+
       lcd.clear();                   //Limpia display
       lcd.setCursor(0, 1);           //Posicion del puntero para escribir en el display
       lcd.print(humedadTexto);       //Escribe en el display
@@ -150,6 +165,12 @@ void loop() {
     } else if (key == 'D') {                 //La letra D tiene la accion de leer la temperatura
       temperatura = dht.readTemperature();   //Lee la temperatura del sensor
       temperaturaTexto.concat(temperatura);  //Se concatena el texto con la variable
+
+        if(temperatura > 200){                 //Si sobre un rango sonara la bocina
+          digitalWrite(pinBocina, HIGH);
+          delay(300);
+          digitalWrite(pinBocina, LOW);
+        }
 
       lcd.clear();                           //Limpia display
       lcd.setCursor(0, 1);                   //Posicion del puntero para escribir en el display
